@@ -1,0 +1,18 @@
+apiVersion: sro.example.com/v1
+kind: ServiceLevelObjective
+metadata:
+  name: online-boutique-frontend-slo
+  description: "Ensure 99.9% availability and low latency for the core e-commerce frontend"
+spec:
+  service: frontend
+  indicators:
+    - name: availability
+      query: "sum(rate(http_requests_total{status=~'200|300|400'}[5m])) / sum(rate(http_requests_total[5m]))"
+      objective: 0.999
+    - name: latency
+      query: "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))"
+      objective: 0.5 # 95% of requests under 500ms
+  alerting:
+    burnRateThresholds:
+      - fastBurn: 14.4 # Alerts if error budget depletes quickly
+      - slowBurn: 6.0
